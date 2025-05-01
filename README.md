@@ -1,8 +1,8 @@
 # Physics simulation tools
 
-Copyright 2025 Robert B. Lowrie
-This software is covered by the MIT License.
-Please see the provided LICENSE file for more details.
+Copyright 2025 Robert B. Lowrie  
+This software is covered by the MIT License.  
+Please see the provided LICENSE file for more details.  
 
 This is a collection of physics simulation tools that I created for sharing with students at Texas A&M.
 
