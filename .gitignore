@@ -1,0 +1,7 @@
+# Output files
+*.out
+*.plt
+
+# Python files
+*/__pycache__/
+*/*/__pycache__/
