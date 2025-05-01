@@ -10,6 +10,8 @@ import sys
 from typing import Optional
 from io import TextIOWrapper
 
+import base.state as state
+
 class Logger:
     '''
     This class allows for stderr messages to go to both the terminal and a log file.
@@ -95,13 +97,13 @@ class Physics(abc.ABC):
         self.plotfile = case.output.format(**vars(case)) + '.plt'
         if os.path.exists(self.plotfile):
             raise FileExistsError(f'File {self.plotfile} already exists!')
-    def get_max_dt(self) -> float:
+    def get_max_dt(self, u: state.BaseVec) -> float:
         '''
         Return the maximum allowable time step.
         '''
         return 1.0
     @abc.abstractmethod
-    def update(self, dt: float) -> None:
+    def update(self, u: state.BaseVec, dt: float) -> None:
         '''
         Update the physics.
 
@@ -109,45 +111,49 @@ class Physics(abc.ABC):
         '''
         pass
     def output_cycle(self,
+                     u: state.BaseVec,
                      cycle: int,
                      t: float) -> None:
         '''
         Output that is sent to the output file
         each cycle.
 
+        u: Current solution
         cycle: Current cycle number
         t: Current time value.
         '''
         self.output.write(f'{cycle} {t}\n')
-    def output_final(self) -> None:
+    def output_final(self, u: state.BaseVec) -> None:
         '''
         Final output at the maximum time.
         '''
         pass
 
-def stepper(physics:Physics) -> None:
+def stepper(physics:Physics,
+            u: state.BaseVec) -> None:
     '''
     Steps physics through time, from time 0 to the final time.
 
     physics: A Physics object.
+    u: The initial condition of the solution.
     '''
     case = physics.case
     t = 0
     cycle = 0
     done = False # use to stop exactly at tmax
-    physics.output_cycle(cycle, t)
+    physics.output_cycle(u, cycle, t)
     while t < case.tmax and cycle < case.maxcycle and not done:
-        dt = physics.get_max_dt()
+        dt = physics.get_max_dt(u)
         if cycle < case.rampdt_cycle:
             dt *= (cycle + 1) / case.rampdt_cycle
         if t + dt > case.tmax:
             dt = case.tmax - t
             done = True
-        physics.update(dt)
+        physics.update(u, dt)
         t += dt
         cycle += 1
-        physics.output_cycle(cycle, t)
-    physics.output_final()
+        physics.output_cycle(u, cycle, t)
+    physics.output_final(u)
 
 #######################################################################################################################
 # Main
@@ -157,15 +163,28 @@ if __name__ == '__main__':
     '''
     Do a test.
     '''
+    from base.my_types import ScalarOrArray
+    class Vec(state.BaseVec):
+        def __init__(self,
+                     length: Optional[int]=None,
+                     a: ScalarOrArray=1.0,
+                     b: ScalarOrArray=2.0,
+                     **kwargs):
+            super().__init__(length, a=a, b=b, **kwargs)
+        def create_default(self) -> 'Vec':
+            return Vec()
     class MyPhysics(Physics):
         def __init__(self, case, logger):
             super().__init__(case, logger)
         # Must create update()
-        def update(self, dt):
-            pass
+        def update(self, u: Vec, dt: float):
+            u.a += dt * u.b
+            u.b += dt * u.a
     logger = Logger()
     sys.stderr = logger
     case = Case('physics_test{rampdt_cycle}', 20.0)
     physics = MyPhysics(case, logger)
-    stepper(physics)
-    raise ValueError(f'Test of raising an error; message should be written to output file {physics.output.name}.')
+    u = Vec(length=10)
+    stepper(physics, u)
+    print(f'Solution complete.  Output writte to {physics.output.name}')
+    raise ValueError(f'Test of raising an error: this message should be written to output file {physics.output.name}.')

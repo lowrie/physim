@@ -4,7 +4,7 @@ Copyright 2025 Robert B. Lowrie
 This software is covered by the MIT License.  
 Please see the provided LICENSE file for more details.  
 
-This is a collection of physics simulation tools that I created for sharing with students at Texas A&M.
+This is a collection of physics simulation tools that I created for sharing with students and collaborators.
 
 The modules are:
 
@@ -12,7 +12,7 @@ The modules are:
 * `euler`: 1-D, finite-volume solver for the compressible Euler equations.
 * `tools`: Tools for analyzing results.
 
-I don't claim the methods used in `euler` are the greatest, state-of-the-art, or even correct. I'd be happy to hear about improvements; feel free to provide a pull request.
+I don't claim the methods used in `euler` are the state-of-the-art or even correct. I'd be happy to hear about improvements; feel free to provide a pull request.
 
 ## Requirements
 
@@ -41,16 +41,23 @@ Each of these scripts provide help by using the `-h` option; for example, type
 > euler/driver.py -h
 ```
 
-As an example, to run Sod's shock-tube problem with 100 mesh cells and primitive-variable reconstruction:
+As an example, to run Sod's shock-tube problem with 100 mesh cells:
 
 ```sh
-> euler/driver.py sod 100 --variable p
+> euler/driver.py sod 100
 ```
 
 Two files will be created:
 
 * `sod_100.out`: Output of the cycle number and time step, for each cycle.  Any errors will also be logged in the `*.out` file.
 * `sod_100.plt`: Data with the simulation output at the final time, which may be plotted with the tools described below.
+
+To run the benchmarks (including Sod's problem):
+
+```sh
+> euler/benchmarks.py --outputdir benchmark_test
+```
+which will output all of the results to the directory `benchmark_test`.  Currently, 9 of 85 cases fail, typically either because of reconstructing conservative variables or because of the use of a limiter that is too aggressive (double minmod instead of minmod).
 
 ## Tools for analyzing results
 
@@ -66,3 +73,9 @@ To plot the results of the previous example, run
 > tools/plotgrid.py sod_100.plt --numrows 2 --xlabel '$x$' --ylabel '$\rho$' '$v$' '$p$' '$e$' --no-legend
 ```
 There are many other options for the `plotgrid.py`. All of the scripts provide a `-h` option for help.
+
+To compare your benchmark results, generated above, with my results:
+```sh
+> tools/numdiff.py benchmark_test euler/benchmark_test --include '*.plt'
+```
+This command does a "numerical difference" between the output directories, comparing the output plot files.

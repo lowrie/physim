@@ -1,0 +1,19 @@
+Summary: 9 cases failed.
+0. benchmark_202505011332/simple/c_RK2_none_100
+   Exception: invalid value encountered in sqrt
+1. benchmark_202505011332/twoExpansion/c_dminmod_hancock
+   Exception: invalid value encountered in sqrt
+2. benchmark_202505011332/twoExpansion/ie_dminmod_hancock
+   Exception: invalid value encountered in sqrt
+3. benchmark_202505011332/twoExpansion/c_minmod_hancock
+   Exception: invalid value encountered in sqrt
+4. benchmark_202505011332/test3/c_dminmod_hancock
+   Exception: invalid value encountered in sqrt
+5. benchmark_202505011332/leblanc/c_dminmod_hancock
+   Exception: invalid value encountered in sqrt
+6. benchmark_202505011332/leblanc/ie_dminmod_hancock
+   Exception: invalid value encountered in sqrt
+7. benchmark_202505011332/blast/c_dminmod_hancock_400
+   Exception: invalid value encountered in sqrt
+8. benchmark_202505011332/blast/c_minmod_hancock_400
+   Exception: invalid value encountered in sqrt

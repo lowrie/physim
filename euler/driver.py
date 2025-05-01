@@ -37,7 +37,7 @@ class Case(stepper.Case):
                  cfl: float=0.8, enforceconservation: bool=False,
                  flux: str='hllc', integrator: str='hancock',
                  limiter: str='dminmod', recon: str='central',
-                 variable: str='c', **kwargs):
+                 variable: str='p', **kwargs):
         '''
         problem: Problem name identifier.
         numcells: Number of mesh cells.
@@ -67,12 +67,10 @@ class Hydro(stepper.Physics):
     def __init__(self,
                  case: Case,
                  logger: stepper.Logger,
-                 u: np.ndarray,
                  eos: material.BaseEOS,
                  mesh: mesh.Mesh1D_Equally_Spaced,
                  bc1d: bc.BC1D):
         super().__init__(case, logger)
-        self.u = u
         self.eos = eos
         self.mesh = mesh
 
@@ -91,22 +89,22 @@ class Hydro(stepper.Physics):
         else:
             self.reconer = reconstruction.Central(mesh, bc1d, limiter, case.variable,
                                                   eos, case.enforceconservation)
-    def get_max_dt(self) -> float:
+    def get_max_dt(self, u: state.ConservativeVec) -> float:
         '''
         Returns the maximum allowable time step, based
-        on the max absolute eigenvalue in the current solution.
+        on the max absolute eigenvalue in the solution u.
         '''
         nc = self.mesh.numcells()
         dt = 1.0e50
         for i in range(nc):
-            v = self.u.v(i)
-            e = self.u.e(i)
-            c = self.eos.c_rho_e(self.u.rho[i], e)
+            v = u.v(i)
+            e = u.e(i)
+            c = self.eos.c_rho_e(u.rho[i], e)
             eig = abs(v) + c
             dt = min(dt, self.mesh.dxcell(i) / eig)
         dt *= self.case.cfl
         return dt
-    def update(self, dt: float) -> None:
+    def update(self, u: state.ConservativeVec, dt: float) -> None:
         '''
         Updates the solution state over time dt.
         '''
@@ -114,7 +112,6 @@ class Hydro(stepper.Physics):
         dthancock = None
         if self.case.integrator == 'hancock':
             dthancock = dt
-        u = self.u
         uReconL, uReconR = self.reconer.recon(u, dthancock)
         f = self.fluxer(uReconL, uReconR, self.eos)
         uStage1 = state.ConservativeVec(u.length())
@@ -134,14 +131,14 @@ class Hydro(stepper.Physics):
             f = self.fluxer(uReconL, uReconR, self.eos)
             for c in range(num_components):
                 u[c, :] -= dtdx * (f[c, 1:] - f[c, :-1])
-    def output_final(self):
+    def output_final(self, u: state.ConservativeVec):
         '''
         Write a plot file, which has the format with the following
         columns of data:
 
         x rho v p e
         '''
-        v = state.Conservative_to_DVP(self.u, self.eos)
+        v = state.Conservative_to_DVP(u, self.eos)
         e = self.eos.e_rho_p(v.rho, v.p)
         out = open(self.plotfile, 'w')
         case = self.case
@@ -163,8 +160,8 @@ def run_case(case: Case,
     logger: A Logger() object.
     '''
     u, material, m1d, bc1d, case.tmax = ic.initialize(case.problem, case.numcells)
-    hydro = Hydro(case, logger, u, material.eos, m1d, bc1d)
-    stepper.stepper(hydro)
+    hydro = Hydro(case, logger, material.eos, m1d, bc1d)
+    stepper.stepper(hydro, u)
 
 #######################################################################################################################
 # Main
