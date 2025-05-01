@@ -63,9 +63,9 @@ which will output all of the results to the directory `benchmark_test`.  Current
 
 Several tools that I wrote for analyzing the results are in the `tools` module:
 
-* `tools\plotgnu.py`: Plots results on a single x-y plot. The `*.plt` output from the `euler` solver may be plotted with this script.
-* `tools\plotgrid.py`: Plots results on a grid of x-y plots. The `*.plt` output from the `euler` solver may be plotted with this script.
-* `tools\numdiff.py`: Compares two or more files that contain numerical data.
+* `tools/plotgnu.py`: Plots results on a single x-y plot. The `*.plt` output from the `euler` solver may be plotted with this script.
+* `tools/plotgrid.py`: Plots results on a grid of x-y plots. The `*.plt` output from the `euler` solver may be plotted with this script.
+* `tools/numdiff.py`: Compares two or more files that contain numerical data.
 
 To plot the results of the previous example, run
 
@@ -76,6 +76,6 @@ There are many other options for the `plotgrid.py`. All of the scripts provide a
 
 To compare your benchmark results, generated above, with my results:
 ```sh
-> tools/numdiff.py benchmark_test euler/benchmark_test --include '*.plt'
+> tools/numdiff.py benchmark_test euler/benchmark_reference --include '*.plt'
 ```
 This command does a "numerical difference" between the output directories, comparing the output plot files.
