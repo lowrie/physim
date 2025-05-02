@@ -10,9 +10,10 @@ The modules are:
 
 * `base`: Base classes and utilities.
 * `euler`: 1-D, finite-volume solver for the compressible Euler equations.
+* `trt`: 1-D, finite-volume solver for grey thermal radiation transport.
 * `tools`: Tools for analyzing results.
 
-I don't claim the methods used in `euler` are the state-of-the-art or even correct. I'd be happy to hear about improvements; feel free to provide a pull request.
+I'd be happy to hear about improvements; feel free to provide a pull request.
 
 ## Requirements
 
@@ -32,10 +33,10 @@ or bash:
 > export PYTHONPATH=this_directory_path
 ```
 
+## Running the solvers
 
-## Running the Euler solver
-
-There are two scripts main scripts
+The `euler` and `trt` solvers have the same procedure for running and analyzing their results. In this section, we will use the `euler` solver as an example.
+For the `euler` solver, there are two scripts main scripts
 
 * `euler/driver.py`: Runs the Euler solver for a single case.
 * `euler/benchmarks.py`: Runs the Euler solver for a series of test cases.
@@ -46,7 +47,7 @@ Each of these scripts provide help by using the `-h` option; for example, type
 > euler/driver.py -h
 ```
 
-As an example, to run Sod's shock-tube problem with 100 mesh cells:
+To run Sod's shock-tube problem with 100 mesh cells:
 
 ```sh
 > euler/driver.py sod 100
@@ -62,7 +63,7 @@ You can run all the benchmarks (including Sod's problem) with
 ```sh
 > euler/benchmarks.py --outputdir benchmark_test
 ```
-which will output all of the results to the directory `benchmark_test`.  Currently, 9 of 85 cases fail, typically either because of reconstructing conservative variables or because of the use of a limiter that is too aggressive (double minmod instead of minmod).
+which will output all of the results to the directory `benchmark_test`.  Currently, 9 of 85 cases fail, typically either because of reconstructing conservative variables or because of the use of a limiter that is too aggressive (double minmod instead of minmod).  All of the `trt` cases run to completion.
 
 ## Tools for analyzing results
 

@@ -31,7 +31,9 @@ class Case(stepper.Case):
     '''
     Container that defines the options for a Euler case.
     '''
-    def __init__(self, problem: str, numcells: int,
+    def __init__(self,
+                 problem: str,
+                 numcells: int,
                  output: str='{problem}_{numcells}',
                  rampdt_cycle: int=10,
                  cfl: float=0.8, enforceconservation: bool=False,
