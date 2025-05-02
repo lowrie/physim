@@ -1,0 +1,2 @@
+*.out linguist-vendored=false
+*.plt linguist-vendored=false
