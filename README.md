@@ -52,7 +52,7 @@ Two files will be created:
 * `sod_100.out`: Output of the cycle number and time step, for each cycle.  Any errors will also be logged in the `*.out` file.
 * `sod_100.plt`: Data with the simulation output at the final time, which may be plotted with the tools described below.
 
-To run the benchmarks (including Sod's problem):
+You can run all the benchmarks (including Sod's problem) with
 
 ```sh
 > euler/benchmarks.py --outputdir benchmark_test
@@ -70,12 +70,14 @@ Several tools that I wrote for analyzing the results are in the `tools` module:
 To plot the results of the previous example, run
 
 ```sh
-> tools/plotgrid.py sod_100.plt --numrows 2 --xlabel '$x$' --ylabel '$\rho$' '$v$' '$p$' '$e$' --no-legend
+> tools/plotgrid.py sod_100.plt --numrows 2 --xlabel '$x$' --ylabel '$\rho$' '$v$' '$p$' '$e$' --no-legend --title 'Results for Sod problem\nMUSCL-Hancock, limiting primitive variables, 100 cells'
 ```
-There are many other options for the `plotgrid.py`. All of the scripts provide a `-h` option for help.
+The results are plotted at the bottom of this page. There are many other options for the `plotgrid.py`. All of the scripts provide a `-h` option for help.
 
-To compare your benchmark results, generated above, with my results:
+Run this command to compare your benchmark results, generated above, with my results:
 ```sh
 > tools/numdiff.py benchmark_test euler/benchmark_reference --include '*.plt'
 ```
-This command does a "numerical difference" between the output directories, comparing the output plot files.
+This command does a "numerical difference" between the output directories, comparing the plot files.
+
+![Results for Sod problem](sod.png)

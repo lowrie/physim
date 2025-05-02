@@ -4,7 +4,6 @@
 '''
 Tools for setting initial conditions.
 '''
-import abc
 import math
 from typing import Optional
 
@@ -100,10 +99,6 @@ class ICBlastwave(ICBase):
     def __init__(self,
                  mesh: base.mesh.Mesh1D_Equally_Spaced,
                  eos: base.material.BaseEOS):
-        '''
-        mesh: mesh object.
-        eos: GammaEOS object
-        '''
         super().__init__('blast')
         self.mesh = mesh
         vL = state.DVPVec(rho=1, v=0, p=1000)
@@ -140,7 +135,7 @@ def initialize(problem: str,
     numcells: number of mesh cells.
 
     Returns:
-    u: numcell-array of the initial condition
+    u: ConservativeVec(numcells) of the initial condition
     mat: Material object.
     m1d: Mesh object for a 1-D mesh.
     bc1d: boundary condition object.

@@ -235,7 +235,7 @@ if __name__ == '__main__':
             thiscase = c.output.format(**vars(c))
             print(f'Running {thiscase}')
             try:
-                driver.run_case(c, logger)
+                driver.run_case(c, logger, output_logger=False)
             except FileExistsError:
                 print('...output already exists...skipping.')
             except Exception as e:

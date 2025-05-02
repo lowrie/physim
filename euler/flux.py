@@ -70,7 +70,6 @@ def flux_hllc(uL: state.ConservativeVec,
     sR = vHat + cHat
 
     # Ensure sL and sR are at least as large as L,R eigenvalues.
-    # Toro doesn't mention this, and it's key for the vacuum problems.
     cL = eos.c_rho_p(dvpL.rho, dvpL.p)
     cR = eos.c_rho_p(dvpR.rho, dvpR.p)
     sL = np.minimum(sL, dvpL.v - cL)

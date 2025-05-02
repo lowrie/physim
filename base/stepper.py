@@ -82,15 +82,18 @@ class Physics(abc.ABC):
     '''
     def __init__(self,
                  case: Case,
-                 logger: Logger):
+                 logger: Logger,
+                 output_logger: bool=True):
         '''
-        case: A Case object.
-        logger: A Logger object.
+        output_logger: If true, output is sent through logger (both to the terminal
+          and to the log file). Otherwise, output is sent only to the log file. 
         '''
         self.case = case
-        outfile = case.output.format(**vars(case)) + '.out'
-        self.output = open(outfile, 'w')
+        self.outfile = case.output.format(**vars(case)) + '.out'
+        self.output = open(self.outfile, 'w')
         logger.log_file = self.output
+        if output_logger:
+            self.output = logger
 
         # Don't open the plot file until a call to output_final()
         # so that the file is not created if the case fails.
@@ -100,6 +103,8 @@ class Physics(abc.ABC):
     def get_max_dt(self, u: state.BaseVec) -> float:
         '''
         Return the maximum allowable time step.
+
+        u: Current solution at which to compute the time step.
         '''
         return 1.0
     @abc.abstractmethod
@@ -107,6 +112,8 @@ class Physics(abc.ABC):
         '''
         Update the physics.
 
+        u: On input, the initial solution.  On output, the
+            solution after time dt.
         dt: Time step to take.
         '''
         pass
@@ -122,7 +129,9 @@ class Physics(abc.ABC):
         cycle: Current cycle number
         t: Current time value.
         '''
-        self.output.write(f'{cycle} {t}\n')
+        if cycle == 0:
+            self.output.write('cycle#  time\n')
+        self.output.write(f'{cycle:6d} {t:12.5e}\n')
     def output_final(self, u: state.BaseVec) -> None:
         '''
         Final output at the maximum time.
@@ -136,6 +145,7 @@ def stepper(physics:Physics,
 
     physics: A Physics object.
     u: The initial condition of the solution.
+        Overwritten with the final solution.
     '''
     case = physics.case
     t = 0
@@ -174,8 +184,8 @@ if __name__ == '__main__':
         def create_default(self) -> 'Vec':
             return Vec()
     class MyPhysics(Physics):
-        def __init__(self, case, logger):
-            super().__init__(case, logger)
+        def __init__(self, case, logger, output_logger):
+            super().__init__(case, logger, output_logger)
         # Must create update()
         def update(self, u: Vec, dt: float):
             u.a += dt * u.b
@@ -183,8 +193,8 @@ if __name__ == '__main__':
     logger = Logger()
     sys.stderr = logger
     case = Case('physics_test{rampdt_cycle}', 20.0)
-    physics = MyPhysics(case, logger)
+    physics = MyPhysics(case, logger, True)
     u = Vec(length=10)
     stepper(physics, u)
-    print(f'Solution complete.  Output writte to {physics.output.name}')
-    raise ValueError(f'Test of raising an error: this message should be written to output file {physics.output.name}.')
+    print(f'Solution complete.  Output writte to {physics.outfile}')
+    raise ValueError(f'Test of raising an error: this message should be written to output file {physics.outfile}.')

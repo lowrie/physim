@@ -88,21 +88,6 @@ class ConsIEVec(BaseVec):
     def create_default(self) -> 'ConsIEVec':
         return ConsIEVec()
 
-class CharVec(BaseVec):
-    '''
-    Charctertistic vector.  Components are the Riemann invariants.
-    This capability needs work to be used as a limiter variable.
-    It should be a linearization about a given state.
-    '''
-    def __init__(self,
-                 length: Optional[int]=None,
-                 vmc: ScalarOrArray=1.0,
-                 s: ScalarOrArray=1.0,
-                 vpc: ScalarOrArray=1.0):
-        super().__init__(length, vmc=vmc, s=s, vpc=vpc)
-    def create_default(self) -> 'CharVec':
-        return CharVec()
-
 def Conservative_to_DVP(c: ConservativeVec,
                         eos: BaseEOS) -> DVPVec:
     '''
@@ -142,34 +127,6 @@ def ConsIE_to_Conservative(cie: ConsIEVec,
     c = ConservativeVec(rho=cie.rho, rhov=cie.rhov, rhoE=cie.rhoe)
     c.rhoE += 0.5 * cie.rhov * cie.rhov / cie.rho
     return c
-
-def Conservative_to_Char(c: ConservativeVec,
-                         eos: GammaEOS) -> CharVec:
-    '''
-    Returns a CharVec corresponding to a given ConservativeVec.
-    '''
-    dvp = Conservative_to_DVP(c, eos)
-    cs = 2 * eos.c_rho_p(dvp.rho, dvp.p) / (eos.gamma - 1)
-    ch = CharVec(length=c.length())
-    ch.vmc[:] = cs[:] - dvp.v
-    ch.vpc[:] = cs[:] + dvp.v
-    ch.s[:] = np.log(dvp.p / np.pow(dvp.rho, eos.gamma))
-    #ch.s[:] = dvp.p / np.pow(dvp.rho, eos.gamma)
-    return ch
-
-def Char_to_Conservative(ch: CharVec,
-                         eos: GammaEOS) -> ConservativeVec:
-    '''
-    Returns a ConservativeVec corresponding to a given CharVec.
-    '''
-    dvp = DVPVec(ch.length())
-    dvp.v[:] = 0.5 * (ch.vpc - ch.vmc)
-    cs = 0.25 * (eos.gamma - 1) * (ch.vpc + ch.vmc)
-    exps = np.exp(ch.s)
-#    exps = ch.s
-    dvp.rho[:] = np.pow(cs * cs / (eos.gamma * exps), 1 / (eos.gamma - 1))
-    dvp.p[:] = exps * np.pow(dvp.rho, eos.gamma)
-    return DVP_to_Conservative(dvp, eos)
 
 def DVP_to_Flux(p: DVPVec,
                 eos: BaseEOS) -> FluxVec:

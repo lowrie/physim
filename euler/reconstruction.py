@@ -24,7 +24,7 @@ class ReconBase(abc.ABC):
                  bc1d: base.bc.BC1D):
         '''
         name: String identifier of reconstruction.
-        mesh1d: mesh object.
+        mesh1d: Mesh object.
         bc1d: Boundary condition object.
         '''
         self.name = name
@@ -93,10 +93,12 @@ class Constant(ReconBase):
 class Central(ReconBase):
     '''
     This reconstruction is a linear function in each cell.  The unlimited
-    slope is formed using a central-difference approximation.
+    slope is formed using a central-difference approximation. With the
+    limiting option, this reconstruction is the foundation of MUSCL.
 
     If dt is not None in a call to recon(), then a Hancock predictor is used
-    to obtain the predicted left and right states.
+    to obtain the predicted left and right states. This results in an
+    overall method that is often referred to as MUSCL-Hancock.
     '''
     def __init__(self,
                  mesh1d: base.mesh.Mesh1D_Equally_Spaced,
@@ -108,13 +110,11 @@ class Central(ReconBase):
         super().__init__('central', mesh1d, bc1d)
         '''
         mesh: mesh object.
-        bcLeft: Left boundary condition object.
-        bcRight: Right boundary condition object.
+        bc1d: boundary condition object.
         limiter: Type of slope limiter. minmod, dminmod (double minmod), or None.
         variable: Variable set to reconstruct. Options are:
             c: conservative {rho,rho*v,rho*E}
             p: primitive {rho,v,p}
-            char: characteristic
             ie: {rho,rho*v,rho*e}
         eos: EOS object
         enforce_conservation: If true, shift the slopes so that 
@@ -122,7 +122,7 @@ class Central(ReconBase):
         if limiter not in ['minmod', 'dminmod', None]:
             raise ValueError(f'Unrecognized limiter {limiter}')
         self.limiter = limiter
-        if variable not in ['c', 'p', 'char', 'ie']:
+        if variable not in ['c', 'p', 'ie']:
             raise ValueError(f'Unrecognized variable {variable}')
         self.eos = eos
         self.enforce_conservative = enforce_conservative
@@ -133,11 +133,6 @@ class Central(ReconBase):
             self.cons_to_w = state.Conservative_to_DVP
             self.w_to_cons = state.DVP_to_Conservative
             self.w_to_flux = state.DVP_to_Flux
-        elif variable == 'char':
-            self.wvar = state.CharVec
-            self.cons_to_w = state.Conservative_to_Char
-            self.w_to_cons = state.Char_to_Conservative
-            self.w_to_flux = state.Char_to_Flux
         elif variable == 'ie':
             self.wvar = state.ConsIEVec
             self.cons_to_w = state.Conservative_to_ConsIE
@@ -213,7 +208,7 @@ class Central(ReconBase):
             if self.enforce_conservative:
                 # Shift reconstructed edge values to ensure their average
                 # is the original cell-centered value. TODO: Consider a multiplier
-                # instead, for positive values rho and rho*E.
+                # instead, at least for non-negative quantities.
                 for c in range(num_components):
                     uavg = 0.5 * (cL[c, 1:] + cR[c, :-1])
                     cL[c, 1:] += u[c, :] - uavg

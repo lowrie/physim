@@ -17,7 +17,7 @@ class ICBase(abc.ABC):
     @abc.abstractmethod
     def get_ic(self) -> state.BaseVec:
         '''
-        Returns numcells-array of ConservativeVec
+        Returns BaseVec(numcells) of the initial condition.
         '''
         pass
 

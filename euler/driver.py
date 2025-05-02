@@ -23,7 +23,7 @@ import euler.state as state
 problems = ['sod', 'sod_flip', 'simple', 'twoExpansion', 'test3', 'test5', 'leblanc', 'blast']
 fluxers = ['exact', 'hllc']
 limiters = ['none', 'dminmod', 'minmod']
-variables = ['c', 'p', 'ie', 'char']
+variables = ['c', 'p', 'ie']
 integrators = ['RK1', 'RK2', 'hancock']
 reconstructors = ['constant', 'central']
 
@@ -43,11 +43,14 @@ class Case(stepper.Case):
         numcells: Number of mesh cells.
         rampdt_cycle: Ramp up time step over this many cycles.
         cfl: Safety factor for time step.
-        flux: Flux solve: {"hllc", "exact"}
-        integrator: Time integrator: {"hancock", "RK1", "RK2"}
-        limiter: Limiter: {None, "minmod, "dminmod"}
-        recon: Reconstruction operator: {"constant", "central"}
-        variable: Variables to reconstruct {"c", "p", "char", "ie"}
+
+        See input options at the top of this file for permitted values
+        of the following:
+        flux: Flux solver.
+        integrator: Time integrator.
+        recon: Reconstruction operator
+        limiter: Slope limiter. No effect for recon="constant"
+        variable: Variables to reconstruct. No effect for recon="constant"
         '''
         super().__init__(output=output, rampdt_cycle=rampdt_cycle, **kwargs)
         self.problem = problem
@@ -69,8 +72,12 @@ class Hydro(stepper.Physics):
                  logger: stepper.Logger,
                  eos: material.BaseEOS,
                  mesh: mesh.Mesh1D_Equally_Spaced,
-                 bc1d: bc.BC1D):
-        super().__init__(case, logger)
+                 bc1d: bc.BC1D,
+                 output_logger: bool=True):
+        '''
+        See base class.
+        '''
+        super().__init__(case, logger, output_logger)
         self.eos = eos
         self.mesh = mesh
 
@@ -106,7 +113,7 @@ class Hydro(stepper.Physics):
         return dt
     def update(self, u: state.ConservativeVec, dt: float) -> None:
         '''
-        Updates the solution state over time dt.
+        See base class.
         '''
         dtdx = dt / self.mesh.dxcell()
         dthancock = None
@@ -152,15 +159,13 @@ class Hydro(stepper.Physics):
         
 
 def run_case(case: Case,
-             logger: stepper.Logger) -> None:
+             logger: stepper.Logger,
+             output_logger: bool=True) -> None:
     '''
     Runs a problem defined by case.
-
-    case: A Case object.
-    logger: A Logger() object.
     '''
     u, material, m1d, bc1d, case.tmax = ic.initialize(case.problem, case.numcells)
-    hydro = Hydro(case, logger, material.eos, m1d, bc1d)
+    hydro = Hydro(case, logger, material.eos, m1d, bc1d, output_logger)
     stepper.stepper(hydro, u)
 
 #######################################################################################################################
@@ -180,15 +185,18 @@ if __name__ == '__main__':
     parser.add_argument('--cfl', type=float, default=c.cfl,
                         help='CFL number (default: %(default)s).')
     parser.add_argument('--enforceconservation', default=c.enforceconservation, action='store_true',
-                        help='Enforce conservative reconstruction. Only affects central recon,'
-                        ' with non-conservative variables. Very experimental (default: %(default)s).')
+                        help='Enforce conservative reconstruction. Only affects recon=central'
+                        ' and variable!=c. Very experimental (default: %(default)s).')
     parser.add_argument('--flux', choices=fluxers, default=c.flux, help='Flux function. (default: %(default)s)')
-    parser.add_argument('--integrator', choices=integrators, default=c.integrator, help='Time integrator (default: %(default)s).')
-    parser.add_argument('--limiter', choices=limiters, default=c.limiter, help='Limiter (default: %(default)s).')
+    parser.add_argument('--integrator', choices=integrators, default=c.integrator,
+                        help='Time integrator (default: %(default)s).')
+    parser.add_argument('--limiter', choices=limiters, default=c.limiter,
+                        help='Limiter (default: %(default)s). No effect for recon=constant.')
     parser.add_argument('--output', default=c.output, help='Output filename prefix (default: %(default)s).')
     parser.add_argument('--maxcycle', default=c.maxcycle, type=int, help='Maximum number of cycles to run (default: %(default)s).')
     parser.add_argument('--recon', choices=reconstructors, default=c.recon, help='Type of reconstruction (default: %(default)s).')
-    parser.add_argument('--variable', choices=variables, default=c.variable, help='Variable to reconstruct (default: %(default)s).')
+    parser.add_argument('--variable', choices=variables, default=c.variable,
+                        help='Variable to reconstruct (default: %(default)s). No effect for recon=constant.')
 
     args = parser.parse_args()
     # Copy the CLI options into the Case object
