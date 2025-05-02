@@ -1,2 +1,1 @@
-*.out linguist-vendored=false
-*.plt linguist-vendored=false
+euler/benchmark_reference/** -linguist-vendored
