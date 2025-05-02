@@ -74,7 +74,7 @@ if __name__ == '__main__':
                         action='store_false', help='Opposite of --grid')
     parser.add_argument('-l', '--label', nargs='*',
                         help='Label strings for each file.'
-                        ' For each column (ordinate), labels will cycle through the those specified.'
+                        ' For each ordinate, labels will cycle through the those specified.'
                         ' The default is to use the file name.')
     parser.add_argument('--legend', default=True, action='store_true',
                         help='If true, add a legend to the figure. '
@@ -87,35 +87,36 @@ if __name__ == '__main__':
                         action='store_false', help='Opposite of --legend')
     parser.add_argument('--linewidth', nargs='*', default=[2],
                         help='Line width for each line that is plotted.'
-                        ' For each column (ordinate), widths will cycle through those specified.'
+                        ' For each ordinate, widths will cycle through those specified.'
                         ' (default: %(default)s)')
     parser.add_argument('--markersize', default=4, type=int,
                         help='Marker (symbol) size.'
                         ' (default: %(default)s)')
-    parser.add_argument('--numcols', default=1, type=int,
-                        help='Number of columns of plots.  If the number of plots exceeds numcols * numrows,'
-                        ' then numcols is increased to accomodate the number of plots.'
+    parser.add_argument('--numcols', type=int,
+                        help='Number of columns of plots. If unspecified, then determined either by --numrows'
+                        ' or automatically.'
                         ' (default: %(default)s)')
-    parser.add_argument('--numrows', default=1, type=int,
-                        help='Number of rows of plots.'
+    parser.add_argument('--numrows', type=int,
+                        help='Number of rows of plots. If unspecified, then determined either by --numcols'
+                        ' or automatically. Ignored if --numcols is specified.'
                         ' (default: %(default)s)')
     parser.add_argument('-o', '--output', nargs='?', default=None,
                         const='plotgrid.png', metavar='OUTPUTFILE',
                         help='Send grahics output to file %(metavar)s, with no screen '
                         'output. If --output is specified with no argument, '
                         'then %(const)s is used as %(metavar)s.')
-    parser.add_argument('--ordinate', type=int, nargs='*', action='append',
+    parser.add_argument('--ordinate', type=int, nargs='*',
                         help='Columns in each gnuplot file to plot as ordinate.'
-                        ' Each column is plotted on a separate plot.'
+                        ' Each column is plotted on a separate plot, on the grid in row-major ordering.'
                         ' If not specified, then all columns are plotted.'
                         ' (default: %(default)s)')
     parser.add_argument('--scaling', nargs='*', choices=scalings_map.keys(), default=['linear'],
                         help='Scaling type.'
-                        ' For each column (ordinate), scaling will cycle through those specified.'
+                        ' For each ordinate, scaling will cycle through those specified.'
                         ' (default: %(default)s)')
     parser.add_argument('--style', nargs='*', default=styles,
                         help='Plot style for each line.'
-                        ' For each column (ordinate), style will cycle through those specified.'
+                        ' For each ordinate, style will cycle through those specified.'
                         ' (default: %(default)s)')
     parser.add_argument('-t', '--title', default=None, type=str,
                         help='Plot main title. The default is to concatanate '
@@ -128,7 +129,7 @@ if __name__ == '__main__':
                         help='y-axis limits. Default is autoscale.'
                         ' May be specified multiples times, for each ordinate.'
                         ' If no arguments are given, then autoscale will be used.'
-                        ' For each column (ordinate), limits will cycle through those specified.')
+                        ' For each ordinate, limits will cycle through those specified.')
     parser.add_argument('--ylabelrotation', default='vertical', choices=['vertical, horizontal'],
                         help='Rotation of all y-axis labels. (default: %(default)s)')
 
@@ -201,9 +202,12 @@ if __name__ == '__main__':
                     raise ValueError(mesg)
 
                 if fig is None:
-                    n = args.numcols * args.numrows
-                    if n < num_ordinates:
+                    if args.numcols is None:
+                        if args.numrows is None:
+                            args.numrows = math.ceil(math.sqrt(num_ordinates))
                         args.numcols = math.ceil(num_ordinates / args.numrows)
+                    else:
+                        args.numrows = math.ceil(num_ordinates / args.numcols)
                     fig, ax = plt.subplots(args.numrows, args.numcols, sharex=True, figsize=args.figsize,
                                            squeeze=False)
 

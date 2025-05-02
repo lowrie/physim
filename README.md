@@ -27,6 +27,11 @@ On UNIX platorms, set the `PYTHONPATH` environment variable to the directory con
 ```sh
 > setenv PYTHONPATH this_directory_path
 ```
+or bash:
+```sh
+> export PYTHONPATH=this_directory_path
+```
+
 
 ## Running the Euler solver
 
