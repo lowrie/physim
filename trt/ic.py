@@ -21,20 +21,21 @@ class ICMarshak(ICBase):
         self.mesh = mesh
         Twall = 10.0 # keV
         T = 0.001 # keV
-        self.rho = 1.0
+        rho = 1.0 # g/cc
         eos = mat.eos
-        eWall = eos.e_rho_T(self.rho, Twall)
+        eWall = eos.e_rho_T(rho, Twall)
         self.uWall = state.RadiationVec(e=eWall)
         self.uWall.set_tr(Twall)
-        e = eos.e_rho_T(self.rho, T)
-        self.u = state.RadiationVec(e=e)
+        e = eos.e_rho_T(rho, T)
+        self.u = state.RadiationVec(rho=rho, e=e)
         self.u.set_tr(T)
     def get_ic(self) -> state.RadiationVec:
         '''
-        Returns numcells-array of RadiationVec
+        Returns RadiationVec(numcells)
         '''
         nc = self.mesh.numcells()
-        c = state.RadiationVec(nc, rade=self.u.rade, e=self.u.e)
+        c = state.RadiationVec(nc, rho=self.u.rho,
+                               rade=self.u.rade, e=self.u.e)
         return c
 
 class ICRelax(ICBase):
@@ -45,17 +46,18 @@ class ICRelax(ICBase):
         self.mesh = mesh
         Tr = 10.0 # keV
         T = 0.001 # keV
-        self.rho = 1.0
+        rho = 1.0 # g/cc
         eos = mat.eos
-        e = eos.e_rho_T(self.rho, T)
-        self.u = state.RadiationVec(e=e)
+        e = eos.e_rho_T(rho, T)
+        self.u = state.RadiationVec(rho=rho, e=e)
         self.u.set_tr(Tr)
     def get_ic(self) -> state.RadiationVec:
         '''
         Returns numcells-array of RadiationVec
         '''
         nc = self.mesh.numcells()
-        c = state.RadiationVec(nc, rade=self.u.rade, e=self.u.e)
+        c = state.RadiationVec(nc, rho=self.u.rho,
+                               rade=self.u.rade, e=self.u.e)
         return c
 
 def initialize(problem: str,

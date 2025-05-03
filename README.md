@@ -61,9 +61,9 @@ Two files will be created:
 You can run all the benchmarks (including Sod's problem) with
 
 ```sh
-> euler/benchmarks.py --outputdir benchmark_test
+> euler/benchmarks.py
 ```
-which will output all of the results to the directory `benchmark_test`.  Currently, 9 of 85 cases fail, typically either because of reconstructing conservative variables or because of the use of a limiter that is too aggressive (double minmod instead of minmod).  All of the `trt` cases run to completion.
+which will output all of the results to the directory `benchmark_output` (by default).  Currently, 9 of 85 cases fail, typically either because of reconstructing conservative variables or because of the use of a limiter that is too aggressive (double minmod instead of minmod).  All of the `trt` cases run to completion.
 
 ## Tools for analyzing results
 
@@ -82,7 +82,7 @@ The results are plotted at the bottom of this page. There are many other options
 
 Run this command to compare your benchmark results, generated above, with my results:
 ```sh
-> tools/numdiff.py benchmark_test euler/benchmark_reference --include '*.plt'
+> tools/numdiff.py benchmark_output euler/benchmark_reference --include '*.plt'
 ```
 This command does a "numerical difference" between the output directories, comparing the plot files.
 

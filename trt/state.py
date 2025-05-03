@@ -15,13 +15,20 @@ import base.state
 class RadiationVec(base.state.BaseVec):
     '''
     Radiation state (diffusion).
+
+    rho: mass density.  Although rho is constant in time, we do
+        allow for spatial variation by including it in the state
+        vector.
+    rade: radiation energy density
+    e: material specific internal energy.
     '''
     def __init__(self,
                  length=None,
+                 rho: ScalarOrArray=1.0,
                  rade: ScalarOrArray=1.0,
                  e: ScalarOrArray=1.0,
                  **kwargs):
-        super().__init__(length, rade=rade, e=e, **kwargs)
+        super().__init__(length, rho=rho, rade=rade, e=e, **kwargs)
     def create_default(self) -> 'RadiationVec':
         return RadiationVec()
     def set_tr(self,

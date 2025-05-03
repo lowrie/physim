@@ -34,14 +34,12 @@ class Case(stepper.Case):
                  rampdt_cycle: int=10,
                  first_dt_frac: float=0.000001,
                  dt_dE_frac: float=0.05,
-                 rho: float=1.0,
                  **kwargs):
         super().__init__(output=output, rampdt_cycle=rampdt_cycle, **kwargs)
         self.problem = problem
         self.numcells = numcells
         self.first_dt_frac = first_dt_frac
         self.dt_dE_frac = dt_dE_frac
-        self.rho = rho
 
 class Radiation(stepper.Physics):
     '''
@@ -75,8 +73,8 @@ class Radiation(stepper.Physics):
         '''
         if self.max_deltaE is None:
             # first time step
-            T = self.eos.T_rho_e(self.case.rho, u.e)
-            relax_rate = np.max(light_speed * self.absorption(self.case.rho, T))
+            T = self.eos.T_rho_e(u.rho, u.e)
+            relax_rate = np.max(light_speed * self.absorption(u.rho, T))
             dt = self.case.first_dt_frac / relax_rate
         else:
             # Target based on max change in radiation energy, but don't
@@ -91,8 +89,7 @@ class Radiation(stepper.Physics):
         See also the base class.
         '''
         dx = self.mesh.dxcell()
-        rho = self.case.rho
-        T = self.eos.T_rho_e(rho, u.e)
+        T = self.eos.T_rho_e(u.rho, u.e)
         ne = self.mesh.numedges()
         nc = self.mesh.numcells()
         # Find the left and right temperatures at the edges, in order
@@ -106,18 +103,18 @@ class Radiation(stepper.Physics):
             TR[-1] = T[0]
         else:
             if self.bcLeft.name == 'dirichlet':
-                TL[0] = self.eos.T_rho_e(rho, self.bcLeft.u.e)
+                TL[0] = self.eos.T_rho_e(u.rho[0], self.bcLeft.u.e)
             else:
                 T[0] = T[0]
             if self.bcRight.name == 'dirichlet':
-                TR[-1] = self.eos.T_rho_e(rho, self.bcRight.u.e)
+                TR[-1] = self.eos.T_rho_e(u.rho[-1], self.bcRight.u.e)
             else:
                 TR[-1] = T[-1]
         # Average the left and right temperatures and determine the
         # diffusion coefficient.
         Tavg = np.pow(0.5 * (np.pow(TL, 4) + np.pow(TR, 4)), 0.25)
         dtc = dt * light_speed
-        diff_coeff = dtc / (3.0 * self.totalxc(rho, Tavg) * dx * dx)
+        diff_coeff = dtc / (3.0 * self.totalxc(u.rho, Tavg) * dx * dx)
         # Build the banded matrix to solve and right-hand side.
         # 
         # The matrix is tri-diagonal, unless
@@ -125,11 +122,11 @@ class Radiation(stepper.Physics):
         # right and lower left of the matrix.  Since the matrix is
         # symmetric, only the diagonal and lower bands need to be stored.
         # See the documentation for scipy.linalg.solveh_banded().
-        siga = self.absorption(rho, T)
+        siga = self.absorption(u.rho, T)
         T3 = np.pow(T, 3)
         T4 = T3 * T
-        cv = self.eos.cv_rho_e(rho, u.e)
-        c0 = dtc * siga / (rho * cv + 4 * dtc * state.radiation_constant * T3 * siga)
+        cv = self.eos.cv_rho_e(u.rho, u.e)
+        c0 = dtc * siga / (u.rho * cv + 4 * dtc * state.radiation_constant * T3 * siga)
         c1 = -c0 * state.radiation_constant * T4
         rhs = dtc * siga * state.radiation_constant * (T4 + 4 * c1 * T3) + u.rade
         numbands = 2
@@ -160,7 +157,7 @@ class Radiation(stepper.Physics):
         u.rade = linalg.solveh_banded(ab, rhs, overwrite_ab=True, overwrite_b=True, lower=True)
         # Update the temperature
         T += c0 * u.rade + c1
-        u.e = self.eos.e_rho_T(rho, T)
+        u.e = self.eos.e_rho_T(u.rho, T)
         # Determine the max absolution change in radiation energy for use by get_max_dt().
         toteNew = u.rade
         self.max_deltaE = np.max(np.abs((toteNew - tote) / tote))
@@ -172,7 +169,7 @@ class Radiation(stepper.Physics):
 
         x T Tr
         '''
-        T = self.eos.T_rho_e(self.case.rho, u.e)
+        T = self.eos.T_rho_e(u.rho, u.e)
         Tr = u.tr()
         out = open(self.plotfile, 'w')
         case = self.case

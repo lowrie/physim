@@ -204,9 +204,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser('benchmarks.py', description='Runs benchmarks.')
 
-    defoutputdir = 'benchmark_' + f'{datetime.now():%Y%m%d%H%M}'
     parser.add_argument('problem', nargs='*', help=f'Problem names to run (default: {driver.problems})')
-    parser.add_argument('--outputdir', default=defoutputdir, help='Output directory (default: %(default)s).')
+    parser.add_argument('--outputdir', default='benchmark_output', help='Output directory (default: %(default)s).')
     parser.add_argument('--dofine', default=False, action='store_true', help='Do fine-grid cases (default: %(default)s).')
 
     args = parser.parse_args()
