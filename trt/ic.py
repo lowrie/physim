@@ -34,7 +34,7 @@ class ICMarshak(ICBase):
         Returns RadiationVec(numcells)
         '''
         nc = self.mesh.numcells()
-        c = state.RadiationVec(nc, rho=self.u.rho,
+        c = state.RadiationVec(length=nc, rho=self.u.rho,
                                rade=self.u.rade, e=self.u.e)
         return c
 
@@ -56,7 +56,7 @@ class ICRelax(ICBase):
         Returns numcells-array of RadiationVec
         '''
         nc = self.mesh.numcells()
-        c = state.RadiationVec(nc, rho=self.u.rho,
+        c = state.RadiationVec(length=nc, rho=self.u.rho,
                                rade=self.u.rade, e=self.u.e)
         return c
 

@@ -23,7 +23,7 @@ def flux_exact(uL: state.ConservativeVec,
     eos: GammaEOS object.
     '''
     nedges = uL.length()
-    f = state.FluxVec(nedges)
+    f = state.FluxVec(length=nedges)
     for i in range(nedges):
         flux = riemann.riemann_flux(uL.get_vec(i), uR.get_vec(i), eos)
         f.set_vec(i, flux)
@@ -81,7 +81,7 @@ def flux_hllc(uL: state.ConservativeVec,
     starR = hllc_star_state(dvpR, uR, sR, sStar)
     fL = state.DVP_to_Flux(dvpL, eos)
     fR = state.DVP_to_Flux(dvpR, eos)
-    f = state.FluxVec(fL.length())
+    f = state.FluxVec(length=fL.length())
     for c in range(uL.num_components()):
         f[c, :] = np.where(sL > 0,
                            fL[c, :], 
@@ -110,8 +110,8 @@ if __name__ == '__main__':
     Tests.
     '''
     eos = GammaEOS()
-    uL = state.ConservativeVec(10)
-    uR = state.ConservativeVec(uL.length())
+    uL = state.ConservativeVec(length=10)
+    uR = state.ConservativeVec(length=uL.length())
     f = flux_exact(uL, uR, eos)
     print(f'exact: {f}')
     f = flux_hllc(uL, uR, eos)

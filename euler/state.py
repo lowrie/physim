@@ -16,12 +16,11 @@ class ConservativeVec(BaseVec):
     Vector of conserved quantities: rho, rho*v, rho*E
     '''
     def __init__(self,
-                 length: Optional[int]=None,
                  rho: ScalarOrArray=1.0,
                  rhov: ScalarOrArray=0.0,
                  rhoE: ScalarOrArray=1.0,
                  **kwargs):
-        super().__init__(length, rho=rho, rhov=rhov, rhoE=rhoE, **kwargs)
+        super().__init__(rho=rho, rhov=rhov, rhoE=rhoE, **kwargs)
     def create_default(self) -> 'ConservativeVec':
         return ConservativeVec()
     def v(self, i: Optional[int]=None) -> ScalarOrArray:
@@ -54,11 +53,11 @@ class FluxVec(BaseVec):
     rho, rho*v, rho*E.
     '''
     def __init__(self,
-                 length: Optional[int]=None,
                  rho=1.0,
                  rhov=0.0,
-                 rhoE=1.0):
-        super().__init__(length, rho=rho, rhov=rhov, rhoE=rhoE)
+                 rhoE=1.0,
+                 **kwargs):
+        super().__init__(rho=rho, rhov=rhov, rhoE=rhoE, **kwargs)
     def create_default(self) -> 'FluxVec':
         return FluxVec()
 
@@ -67,11 +66,11 @@ class DVPVec(BaseVec):
     Primitive vector: rho, v, p
     '''
     def __init__(self,
-                 length: Optional[int]=None,
                  rho: ScalarOrArray=1.0,
                  v: ScalarOrArray=0.0,
-                 p: ScalarOrArray=1.0):
-        super().__init__(length, rho=rho, v=v, p=p)
+                 p: ScalarOrArray=1.0,
+                 **kwargs):
+        super().__init__(rho=rho, v=v, p=p, **kwargs)
     def create_default(self) -> 'DVPVec':
         return DVPVec()
 
@@ -80,11 +79,11 @@ class ConsIEVec(BaseVec):
     Conservative vector with internal energy: rho, rho*v, rho*e
     '''
     def __init__(self,
-                 length: Optional[int]=None,
                  rho: ScalarOrArray=1.0,
                  rhov: ScalarOrArray=0.0,
-                 rhoe: ScalarOrArray=1.0):
-        super().__init__(length, rho=rho, rhov=rhov, rhoe=rhoe)
+                 rhoe: ScalarOrArray=1.0,
+                 **kwargs):
+        super().__init__(rho=rho, rhov=rhov, rhoe=rhoe, **kwargs)
     def create_default(self) -> 'ConsIEVec':
         return ConsIEVec()
 
@@ -170,7 +169,7 @@ if __name__ == '__main__':
     print(f'c {c}')
     # array checks
     np.set_printoptions(threshold=100)
-    c = ConservativeVec(10)
+    c = ConservativeVec(length=10)
     print(f'array c {c}')
     p2 = Conservative_to_DVP(c, gammaEOS)
     print(f'array p2 {p2}')

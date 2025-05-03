@@ -1,5 +1,6 @@
-0 0
-1 6.047431568147637e-07
-2 1.349363903986285e-06
-3 1.5714608130493062e-06
+cycle#  time
+     0  0.00000e+00
+     1  6.04743e-07
+     2  1.34936e-06
+     3  1.57146e-06
 Exception occurred: invalid value encountered in sqrt

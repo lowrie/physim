@@ -161,16 +161,16 @@ class Central(ReconBase):
         # type being reconstructed
         if self.wvar is None:
             w = u
-            wL = state.ConservativeVec(ne)
-            wR = state.ConservativeVec(ne)
-            s = state.ConservativeVec(nc)
-            diff = state.ConservativeVec(ne)
+            wL = state.ConservativeVec(length=ne)
+            wR = state.ConservativeVec(length=ne)
+            s = state.ConservativeVec(length=nc)
+            diff = state.ConservativeVec(length=ne)
         else:
             w = self.cons_to_w(u, self.eos)
-            wL = self.wvar(ne)
-            wR = self.wvar(ne)
-            s = self.wvar(nc)
-            diff = self.wvar(ne)
+            wL = self.wvar(length=ne)
+            wR = self.wvar(length=ne)
+            s = self.wvar(length=nc)
+            diff = self.wvar(length=ne)
         # Compute the slopes centered on each face
         num_components = u.num_components()
         for c in range(num_components):

@@ -123,7 +123,7 @@ class Hydro(stepper.Physics):
             dthancock = dt
         uReconL, uReconR = self.reconer.recon(u, dthancock)
         f = self.fluxer(uReconL, uReconR, self.eos)
-        uStage1 = state.ConservativeVec(u.length())
+        uStage1 = state.ConservativeVec(length=u.length())
         num_components = u.num_components()
         for c in range(num_components):
             uStage1[c, :] = u[c, :] - dtdx * (f[c, 1:] - f[c, :-1])

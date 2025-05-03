@@ -42,7 +42,7 @@ class ICRiemann(ICBase):
         Returns numcells-array of ConservativeVec
         '''
         nc = self.mesh.numcells()
-        c = state.ConservativeVec(nc)
+        c = state.ConservativeVec(length=nc)
         for i in range(nc):
             if self.mesh.xcell(i) < self.xDiaphram:
                 c.set_vec(i, self.uL)
@@ -81,7 +81,7 @@ class ICSimple(ICBase):
         '''
         gamma = self.eos.gamma
         nc = self.mesh.numcells()
-        prim = state.DVPVec(nc)
+        prim = state.DVPVec(length=nc)
         c0 = math.sqrt(gamma * self.p0 / self.rho0)
         for i in range(nc):
             v = 2 * self._b(self.mesh.xcell(i)) / (gamma + 1)
@@ -112,7 +112,7 @@ class ICBlastwave(ICBase):
         Returns numcells-array of ConservativeVec
         '''
         nc = self.mesh.numcells()
-        c = state.ConservativeVec(nc)
+        c = state.ConservativeVec(length=nc)
         for i in range(nc):
             if self.mesh.xcell(i) < 0.1:
                 c.set_vec(i, self.uL)

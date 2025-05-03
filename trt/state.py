@@ -23,12 +23,11 @@ class RadiationVec(base.state.BaseVec):
     e: material specific internal energy.
     '''
     def __init__(self,
-                 length=None,
                  rho: ScalarOrArray=1.0,
                  rade: ScalarOrArray=1.0,
                  e: ScalarOrArray=1.0,
                  **kwargs):
-        super().__init__(length, rho=rho, rade=rade, e=e, **kwargs)
+        super().__init__(rho=rho, rade=rade, e=e, **kwargs)
     def create_default(self) -> 'RadiationVec':
         return RadiationVec()
     def set_tr(self,
