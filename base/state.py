@@ -13,6 +13,9 @@ class BaseVec(abc.ABC):
     Each component may be a single float, which we refer to as a vector of floats.
     Alternatively, each component may be an array of floats, which we refer to as
     a vector of arrays.
+
+    Vector data may be set and accessed several ways. See the tests below
+    for examples.
     '''
     def __init__(self,
                  length: Optional[int]=None,
@@ -20,15 +23,26 @@ class BaseVec(abc.ABC):
         '''
         length: If an integer, then the array length of each component.
             If None, then see kwargs description.
-        kwargs: Components and their initial values. Values may be my_types.ScalarOrArray.
-            If an array, then the array size must match length, or length must be set to None.
-            If a scalar, then if length is an integer, the array is initialized to this value.
+        kwargs: Components and their initial values, in the form "name=value".
+            Values may be my_types.ScalarOrArray.
+            If value is an array and length is None, then the length is set by the array size.
+            If an array and length is an int, then the array size must match length.
+            Arrays are deep copied and all must be the same size.
+            If a component is initialized as a float, then if length is an integer (either
+            because it is specified or the array size of another initializer),
+            the entire array is initialized to this value.
+            If length is None and all components are initialized as a float,
+            then the state vector is treated as a vector of floats.
+            Class method names (e.g., length() and num_components()) cannot be
+            component names. Also, avoid names that begin with an underscore.
         '''
         # Determine the final value of length (thus whether a vector of floats or
         # vector of arrays), and the list name component names.
         self.__dict__['_components'] = []
         self._length = length
         for key, value in kwargs.items():
+            if key in dir(self):
+                raise AttributeError(f'Unable to initialize component {key}; existing attribute name.')
             self._components.append(key)
             if isinstance(value, np.ndarray):
                 if not np.issubdtype(value.dtype, np.number):
@@ -186,31 +200,113 @@ if __name__ == '__main__':
     from my_types import ScalarOrArray
     class Vec(BaseVec):
         def __init__(self,
-                     length: Optional[int]=None,
                      a: ScalarOrArray=1.0,
                      b: ScalarOrArray=2.0,
                      **kwargs):
-            super().__init__(length, a=a, b=b, **kwargs)
+            super().__init__(a=a, b=b, **kwargs)
+        # abstract method must be defined
         def create_default(self) -> 'Vec':
             return Vec()
-    # scalar checks
+    print('*** vector of float checks')
+    print('\nInitialization: c = Vec()')
     c = Vec()
-    print(f'Scalar c {c}')
+    print(f'c: {c}')
+
+    print('\nSet c.a = 5.5 and c.b = 6.6:')
     c.a = 5.5
     c.b = 6.6
-    print(f'Scalar c {c}')
-    # array checks
-    c = Vec(10)
-    print(f'Array c {c}')
+    print(f'c: {c}')
+
+    print('\n*** vector of array checks')
+    print('\nInitialization: c = Vec(length=10)')
+    c = Vec(length=10)
+    print(f'c: {c}')
+
+    print('\nSet c.a = 5.5 and c.b = 6.6:')
     c.a = 5.5
     c.b = 6.6
-    print(f'Array c {c}')
+    print(f'c: {c}')
+
+    print('\nInitializing as: d = Vec(a=c.a)')
+    print('length is taken from c.a and b=2.0 is the default initialization')
     d = Vec(a=c.a)
-    print(f'Array d {d}')
-    d.a[3] = 200
-    d.b[5] = 300
-    print(f'Array d {d}')
-    d[0,0] = 1000 # same as d.a[0] = 1000
-    d[1,0] = 2000 # same as d.b[0] = 2000
-    print(f'Array d {d}')
+    print(f'd: {d}')
+
+    print('\nSetting: d.a[3] = 7.3 and d.b[5] = 8.3:')
+    d.a[3] = 7.3
+    d.b[5] = 8.3
+    print(f'd: {d}')
+
+    print('\nDeep copy, so c.a is unchanged')
+    print(f'c.a: {c.a}')
+
+    print('\nSetting: d[0,6] = 9.4 and d[1,7] = 9.5:')
+    print('Equivalent is d.a[6] = 9.4 and d.b[7] = 9.5')
+    d[0,6] = 9.4 # same as d.a[6] = 9.4
+    d[1,7] = 9.5 # same as d.b[7] = 9.5
+    print(f'd: {d}')
+
+    # Inheritence
+    print('\n*** Inheritence IVec(Vec)')
+    class IVec(Vec):
+        def __init__(self,
+                     c: ScalarOrArray=3.0,
+                     **kwargs):
+            super().__init__(c=c, **kwargs)
+        def create_default(self) -> 'IVec':
+            return IVec()
+    print('\nInitialization: e = IVec(length=5)')
+    e = IVec(length=5)
+    print(f'e: {e}')
+
+    print('\nSetting: e[0,1] = 1.1 and e[1,2] = 1.2 e[2,3] = 1.3')
+    print('Equivalent is e.a[1] = 1.1, e.b[2] = 1.2 and e.c[3] = 1.3')
+    e[0,1] = 1.1
+    e[1,2] = 1.2
+    e[2,3] = 1.3
+    print(f'e: {e}')
+
+    # Inheritence, override component name
+    class OverrideVec(Vec):
+        def __init__(self,
+                     a: ScalarOrArray=66.0, # overrides default in Vec()
+                     **kwargs):
+            super().__init__(a=a, **kwargs)
+        def create_default(self) -> 'OverrideVec':
+            return IVec()
+
+    print('\n*** Inheritence with component-name override.')
+    print('\nOverrideVec(), with a=66.0 as the default.')
+    r = OverrideVec()
+    print(f'r: {r}')
+
+    # Inheritence, override component name
+    class OverrideVec(Vec):
+        def __init__(self,
+                     a: ScalarOrArray=66.0, # overrides default in Vec()
+                     **kwargs):
+            super().__init__(a=a, **kwargs)
+        def create_default(self) -> 'OverrideVec':
+            return IVec()
+
+    print('\n*** Inheritence with component-name override.')
+    print('\nOverrideVec(), with a=66.0 as the default.')
+    r = OverrideVec()
+    print(f'r: {r}')
+
+    # Bad component name
+    class VecBad(BaseVec):
+        def __init__(self,
+                     a: ScalarOrArray=30.0,
+                     get_vec: ScalarOrArray = 2.0, # this is a method name; not permitted
+                     **kwargs):
+            super().__init__(a=a, get_vec=get_vec, **kwargs)
+        def create_default(self) -> 'VecBad':
+            return VecBad()
+
+    print('\n*** Creating a object with an attribute (component name) error.')
+    try:
+        bad = VecBad()
+    except AttributeError as msg:
+        print(f'Caught AttributeError: {msg}')
 
